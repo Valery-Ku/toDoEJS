@@ -83,3 +83,8 @@ todo-app/
 ## Тестирование
 
 - Для тестирования используйте Postman или браузерные инструменты разработчика.
+
+
+
+valeriavaleravaler_db_user   bX8zkk6BsS6gcTlV
+
