@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -5,13 +6,14 @@ const bodyParser = require('body-parser');
 const todoController = require('./controllers/todoController');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // Подключение к MongoDB с обработкой событий
-mongoose.connect('mongodb://localhost:27017/todoapp')
-  .then(() => {
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp'
+mongoose.connect(mongoUri).then(() => {
     console.log('Подключено к MongoDB');
     app.listen(3000, () => {
-      console.log('Server running on http://localhost:3000');
+      console.log(`Сервер запущен на порту ${port}`);
     });
   })
   .catch(err => {
