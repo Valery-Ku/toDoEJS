@@ -3,12 +3,11 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
-const bodyParser = require('body-parser');
-const todoController = require('./controllers/todoController'); 
+const todoController = require('./controllers/todoController');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Подключение к MongoDB с обработкой событий
+// Подключение к MongoDB (URI из env)
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp';
 mongoose.connect(mongoUri)
   .then(() => {
@@ -19,19 +18,19 @@ mongoose.connect(mongoUri)
   });
 
 // Middleware
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
 
-// Сессии для хранения ошибок и данных форм
+// Сессии для ошибок и форм
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',  // Замени на переменную окружения
+  secret: process.env.SESSION_SECRET || 'fallback-secret-key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }  // В продакшене secure: true с HTTPS
+  cookie: { secure: false }  // true для HTTPS
 }));
 
-// Middleware для передачи ошибок и данных в res.locals
+// Middleware для locals
 app.use((req, res, next) => {
   res.locals.errors = req.session.errors || [];
   res.locals.inputData = req.session.inputData || {};
@@ -40,16 +39,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  res.setHeader("Content-Security-Policy", "default-src 'none'");
-  next();
-});
-
 // Настройка EJS и путь к views
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));  // Добавлено: явный путь к папке views
+app.set('views', path.join(__dirname, 'views'));
 
-// Маршруты с контроллерами
+// Маршруты
 app.get('/', todoController.getAllTasks);
 app.post('/tasks', todoController.createTask);
 app.post('/tasks/:id/update', todoController.updateTask);
@@ -57,11 +51,16 @@ app.post('/tasks/:id/toggle', todoController.toggleTask);
 app.get('/tasks/:id/edit', todoController.getEditTask);
 app.post('/tasks/:id/delete', todoController.deleteTask);
 
-// Глобальный error handler
+// Глобальный error handler с fallback
 app.use((err, req, res, next) => {
-  console.error('Server error:', err.stack);  // Улучшено логирование
-  if (!res.headersSent) {  // Предотвратить multiple sends
-    res.status(500).render('error', { message: 'Внутренняя ошибка сервера: ' + err.message });
+  console.error('Server error:', err.stack);
+  if (!res.headersSent) {
+    try {
+      res.status(500).render('error', { message: 'Внутренняя ошибка сервера: ' + err.message });
+    } catch (renderErr) {
+      console.error('Ошибка рендеринга шаблона error.ejs:', renderErr);
+      res.status(500).send('Внутренняя ошибка сервера: ' + err.message);
+    }
   }
 });
 
