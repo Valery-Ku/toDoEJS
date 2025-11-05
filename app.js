@@ -5,31 +5,22 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const todoController = require('./controllers/todoController');
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Подключение к MongoDB (URI из env)
+// Подключение к MongoDB
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp';
 mongoose.connect(mongoUri)
-  .then(() => {
-    console.log('Подключено к MongoDB');
-  })
-  .catch(err => {
-    console.error('Ошибка подключения к MongoDB:', err);
-  });
-
+  .then(() => console.log('Подключено к MongoDB'))
+  .catch(err => console.error('Ошибка подключения к MongoDB:', err));
 // Middleware
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname)));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
-// Сессии для ошибок и форм
+// Сессии
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallback-secret-key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }  // true для HTTPS
+  cookie: { secure: false }
 }));
-
 // Middleware для locals
 app.use((req, res, next) => {
   res.locals.errors = req.session.errors || [];
@@ -38,11 +29,9 @@ app.use((req, res, next) => {
   delete req.session.inputData;
   next();
 });
-
-// Настройка EJS и путь к views
+// Настройка EJS: шаблоны теперь в корне
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
+app.set('views', path.join(__dirname));  // Путь к views — корень
 // Маршруты
 app.get('/', todoController.getAllTasks);
 app.post('/tasks', todoController.createTask);
@@ -50,7 +39,6 @@ app.post('/tasks/:id/update', todoController.updateTask);
 app.post('/tasks/:id/toggle', todoController.toggleTask);
 app.get('/tasks/:id/edit', todoController.getEditTask);
 app.post('/tasks/:id/delete', todoController.deleteTask);
-
 // Глобальный error handler с fallback
 app.use((err, req, res, next) => {
   console.error('Server error:', err.stack);
@@ -63,5 +51,4 @@ app.use((err, req, res, next) => {
     }
   }
 });
-
 module.exports = app;
