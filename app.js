@@ -9,12 +9,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Подключение к MongoDB с обработкой событий
-const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp'
-mongoose.connect(mongoUri).then(() => {
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp';
+mongoose.connect(mongoUri)
+  .then(() => {
     console.log('Подключено к MongoDB');
-    app.listen(3000, () => {
-      console.log(`Сервер запущен на порту ${port}`);
-    });
+    // Удалено app.listen() для совместимости с Vercel (serverless)
   })
   .catch(err => {
     console.error('Ошибка подключения к MongoDB:', err);
@@ -71,3 +70,5 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).render('error', { message: 'Внутренняя ошибка сервера' });
 });
+
+module.exports = app;
