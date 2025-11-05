@@ -1,10 +1,10 @@
+const path = require('path');
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const bodyParser = require('body-parser');
-const todoController = require('./controllers/todoController');
-
+const todoController = require('./controllers/todoController'); 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -13,7 +13,6 @@ const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/todoapp';
 mongoose.connect(mongoUri)
   .then(() => {
     console.log('Подключено к MongoDB');
-    // Удалено app.listen() для совместимости с Vercel (serverless)
   })
   .catch(err => {
     console.error('Ошибка подключения к MongoDB:', err);
@@ -26,7 +25,7 @@ app.use(express.static('public'));
 
 // Сессии для хранения ошибок и данных форм
 app.use(session({
-  secret: 'your-secret-key',  // Замени на секретный ключ
+  secret: process.env.SESSION_SECRET || 'your-secret-key',  // Замени на переменную окружения
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false }  // В продакшене secure: true с HTTPS
@@ -41,21 +40,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Безопасность (CSP)
 app.use((req, res, next) => {
-  if (process.env.NODE_ENV !== 'production') {
-    res.setHeader(
-      "Content-Security-Policy",
-      "default-src 'self'; connect-src 'self' ws://localhost:3000 http://localhost:3000; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
-    );
-  } else {
-    res.setHeader("Content-Security-Policy", "default-src 'none'");
-  }
+  res.setHeader("Content-Security-Policy", "default-src 'none'");
   next();
 });
 
-// Настройка EJS
+// Настройка EJS и путь к views
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));  // Добавлено: явный путь к папке views
 
 // Маршруты с контроллерами
 app.get('/', todoController.getAllTasks);
@@ -67,8 +59,10 @@ app.post('/tasks/:id/delete', todoController.deleteTask);
 
 // Глобальный error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).render('error', { message: 'Внутренняя ошибка сервера' });
+  console.error('Server error:', err.stack);  // Улучшено логирование
+  if (!res.headersSent) {  // Предотвратить multiple sends
+    res.status(500).render('error', { message: 'Внутренняя ошибка сервера: ' + err.message });
+  }
 });
 
 module.exports = app;

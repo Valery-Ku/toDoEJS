@@ -1,13 +1,14 @@
-const Todo = require('../models/Todo');
+const Task = require('../models/Task');
 const { body, validationResult } = require('express-validator');
 
 // Получить все задачи
 exports.getAllTasks = async (req, res) => {
   try {
-    const todos = await Todo.find();
-    res.render('index', { todos, errors: [], inputData: {} });
+    const tasks = await Task.find();
+    res.render('index', { todos: tasks, errors: [], inputData: {} });
   } catch (err) {
-    res.status(500).render('error', { message: 'Ошибка при загрузке задач' });
+    console.error('Error loading tasks:', err); 
+    res.status(500).render('error', { message: 'Ошибка при загрузке задач: ' + err.message });
   }
 };
 
@@ -26,11 +27,12 @@ exports.createTask = [
     }
     try {
       const { title, description } = req.body;
-      const newTodo = new Todo({ title, description });
-      await newTodo.save();
+      const newTask = new Task({ title, description });
+      await newTask.save();
       res.redirect('/');
     } catch (err) {
-      res.status(500).render('error', { message: 'Ошибка при создании задачи' });
+      console.error('Error creating task:', err);
+      res.status(500).render('error', { message: 'Ошибка при создании задачи: ' + err.message });
     }
   }
 ];
@@ -38,34 +40,37 @@ exports.createTask = [
 // Переключить статус завершения
 exports.toggleTask = async (req, res) => {
   try {
-    const todo = await Todo.findById(req.params.id);
-    if (!todo) return res.status(404).render('error', { message: 'Задача не найдена' });
-    todo.completed = !todo.completed;
-    await todo.save();
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).render('error', { message: 'Задача не найдена' });
+    task.completed = !task.completed;
+    await task.save();
     res.redirect('/');
   } catch (err) {
-    res.status(500).render('error', { message: 'Ошибка при обновлении статуса' });
+    console.error('Error toggling task:', err);
+    res.status(500).render('error', { message: 'Ошибка при обновлении статуса: ' + err.message });
   }
 };
 
 // Удалить задачу
 exports.deleteTask = async (req, res) => {
   try {
-    await Todo.findByIdAndDelete(req.params.id);
+    await Task.findByIdAndDelete(req.params.id);
     res.redirect('/');
   } catch (err) {
-    res.status(500).render('error', { message: 'Ошибка при удалении задачи' });
+    console.error('Error deleting task:', err);
+    res.status(500).render('error', { message: 'Ошибка при удалении задачи: ' + err.message });
   }
 };
 
 // Получить задачу для редактирования
 exports.getEditTask = async (req, res) => {
   try {
-    const todo = await Todo.findById(req.params.id);
-    if (!todo) return res.status(404).render('error', { message: 'Задача не найдена' });
-    res.render('edit', { todo, errors: [], inputData: {} });
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).render('error', { message: 'Задача не найдена' });
+    res.render('edit', { todo: task, errors: [], inputData: {} }); 
   } catch (err) {
-    res.status(500).render('error', { message: 'Ошибка при загрузке задачи' });
+    console.error('Error loading task for edit:', err);
+    res.status(500).render('error', { message: 'Ошибка при загрузке задачи: ' + err.message });
   }
 };
 
@@ -84,10 +89,11 @@ exports.updateTask = [
     }
     try {
       const { title, description } = req.body;
-      await Todo.findByIdAndUpdate(req.params.id, { title, description });
+      await Task.findByIdAndUpdate(req.params.id, { title, description });
       res.redirect('/');
     } catch (err) {
-      res.status(500).render('error', { message: 'Ошибка при обновлении задачи' });
+      console.error('Error updating task:', err);
+      res.status(500).render('error', { message: 'Ошибка при обновлении задачи: ' + err.message });
     }
   }
 ];
