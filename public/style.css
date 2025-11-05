@@ -216,6 +216,20 @@ h1 {
   font-style: italic;
 }
 
+.error-messages {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border: 1px solid #f5c6cb;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.error {
+  margin: 0;
+}
+
+
 @media (max-width: 768px) {
   .container {
     padding: 20px;

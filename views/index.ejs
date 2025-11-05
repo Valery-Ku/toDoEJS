@@ -9,15 +9,24 @@
 <body>
   <div class="container">
     <h1>ToDo Список</h1>
+  
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="error-messages">
+        <% errors.forEach(error => { %>
+          <p class="error"><%= error.msg %></p>
+        <% }); %>
+      </div>
+    <% } %>
+    
     <form action="/tasks" method="POST" class="add-form">
       <div class="form-group">
         <label for="title">Название задачи *:</label>
-        <input type="text" id="title" name="title" required minlength="3" placeholder="Введите название...">
+        <input type="text" id="title" name="title" value="<%= typeof inputData !== 'undefined' ? inputData.title : '' %>" required minlength="3" placeholder="Введите название...">
       </div>
       
       <div class="form-group">
         <label for="description">Описание (опционально):</label>
-        <input type="text" id="description" name="description" maxlength="200" placeholder="Краткое описание...">
+        <input type="text" id="description" name="description" value="<%= typeof inputData !== 'undefined' ? inputData.description : '' %>" maxlength="500" placeholder="Краткое описание...">
       </div>
       
       <button type="submit" class="btn-submit">➕ Добавить Задачу</button>
