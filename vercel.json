@@ -6,18 +6,18 @@
       "use": "@vercel/node"
     }
   ],
-  "functions": {
-    "app.js": {
-      "includeFiles": {
-        "views/**": true,
-        "public/**": true
-      }
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
       "dest": "/app.js"
     }
-  ]
+  ],
+  "functions": {
+    "app.js": {
+      "includeFiles": [
+        "views/**",
+        "public/**"
+      ]
+    }
+  }
 }
