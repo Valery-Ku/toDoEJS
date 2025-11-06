@@ -4,19 +4,11 @@ const { body, validationResult } = require('express-validator');
 // Получить все задачи
 exports.getAllTasks = async (req, res) => {
   try {
-    if (require('mongoose').connection.readyState !== 1) {
-      throw new Error('MongoDB не подключена');
-    }
     const tasks = await Task.find();
     res.render('index', { todos: tasks, errors: [], inputData: {} });
   } catch (err) {
     console.error('Error loading tasks:', err);
-    try {
-      res.status(500).render('error', { message: 'Ошибка при загрузке задач: ' + err.message });
-    } catch (renderErr) {
-      console.error('Ошибка рендеринга error.ejs:', renderErr);
-      res.status(500).send('Ошибка при загрузке задач: ' + err.message);
-    }
+    res.render('index', { todos: [], errors: [], inputData: {} });
   }
 };
 
