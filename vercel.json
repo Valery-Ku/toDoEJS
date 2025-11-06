@@ -2,10 +2,10 @@
   "version": 2,
   "functions": {
     "app.js": {
-      "includeFiles": [
-        "views/**",
-        "public/**"
-      ]
+      "includeFiles": {
+        "views/**": true,
+        "public/**": true
+      }
     }
   },
   "routes": [
